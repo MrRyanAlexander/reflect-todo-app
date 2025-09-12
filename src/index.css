@@ -1,0 +1,43 @@
+/**
+ * Global styles for the Todo application
+ * 
+ * This file contains the global CSS styles, including Tailwind CSS imports,
+ * CSS custom properties, and base element styling. It sets up the foundation
+ * for the application's visual design.
+ * 
+ * @fileoverview Global styles and CSS foundation
+ */
+
+@import "tailwindcss";
+
+/* CSS Custom Properties and Root Styles */
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Universal Box Sizing */
+* {
+  box-sizing: border-box;
+}
+
+/* Body Styles */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #ffffff;
+}
+
+/* Root Container */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

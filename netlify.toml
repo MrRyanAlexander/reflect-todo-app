@@ -1,0 +1,21 @@
+[build]
+  # Build command for Vite
+  command = "npm run build"
+  # Directory to publish
+  publish = "dist"
+
+[build.environment]
+  # Set Node.js version for builds and functions
+  NODE_VERSION = "22"
+
+# Redirect API calls to Netlify Functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Handle SPA routing - redirect all non-API requests to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
