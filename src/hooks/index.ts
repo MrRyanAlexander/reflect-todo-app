@@ -2,4 +2,6 @@
  * Hook exports for cleaner imports
  */
 
-export { useTodos } from './useTodos';
+export { useReflections } from './useReflections';
+export { useChat } from './useChat';
+export { useAppContext } from './useAppContext';

@@ -1,21 +1,20 @@
 import React from 'react';
-import { FiX } from 'react-icons/fi';
-import type { SidebarProps } from '../types/todo';
-import { TodoList } from './TodoList';
+import { FiX, FiPlus } from 'react-icons/fi';
+import type { SidebarProps } from '../types/reflection';
+import { ReflectionList } from './ReflectionList';
 import { UI_TEXT, CSS_CLASSES } from '../constants/app';
 
 /**
- * Sidebar component for displaying the todo list
+ * Sidebar component for displaying the reflection history
  * Includes overlay and close functionality
  */
 export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onClose,
-  todos,
-  onToggle,
-  onDelete,
+  reflections,
   onSelect,
-  selectedTodoId,
+  onDelete,
+  selectedReflectionId,
 }) => {
   // Don't render if sidebar is closed
   if (!isOpen) {
@@ -43,6 +42,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     e.stopPropagation();
   };
 
+  /**
+   * Handles creating a new reflection
+   */
+  const handleNewReflection = () => {
+    // This would be handled by the parent component
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50">
       {/* Overlay */}
@@ -62,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         <div className="flex items-center justify-between mb-6">
           <h3 id="sidebar-title" className="text-xl font-semibold text-white">
-            {UI_TEXT.YOUR_TODOS}
+            {UI_TEXT.REFLECTION_HISTORY}
           </h3>
           <button
             onClick={handleCloseClick}
@@ -72,13 +79,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <FiX className="w-5 h-5 text-slate-400" />
           </button>
         </div>
+
+        {/* New Reflection Button */}
+        <div className="mb-4">
+          <button
+            onClick={handleNewReflection}
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-xl text-white font-medium transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+            aria-label="Create new reflection"
+          >
+            <FiPlus className="w-5 h-5" />
+            <span>{UI_TEXT.NEW_REFLECTION}</span>
+          </button>
+        </div>
         
-        <TodoList 
-          todos={todos} 
-          onToggle={onToggle} 
-          onDelete={onDelete}
+        <ReflectionList 
+          reflections={reflections} 
           onSelect={onSelect}
-          selectedTodoId={selectedTodoId}
+          onDelete={onDelete}
+          selectedReflectionId={selectedReflectionId}
         />
       </div>
     </div>

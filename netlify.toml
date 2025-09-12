@@ -8,6 +8,11 @@
   # Set Node.js version for builds and functions
   NODE_VERSION = "22"
 
+# Environment variables for functions
+[functions]
+  # Environment variables for Netlify Functions
+  OPENAI_API_KEY = "your-openai-api-key-here"
+
 # Redirect API calls to Netlify Functions
 [[redirects]]
   from = "/api/*"

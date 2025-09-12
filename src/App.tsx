@@ -1,91 +1,205 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 // Import components
 import {
   Header,
   Footer,
-  TodoInput,
-  TodoFeedback,
   Sidebar,
   Stats,
+  ContextTabs,
+  ChatContext,
+  FeedbackContext,
+  WriteEditContext,
 } from './components';
 
 // Import hooks and types
-import { useTodos } from './hooks';
-import type { Todo } from './types';
+import { useReflections, useChat, useAppContext } from './hooks';
+import type { Reflection, StructuredResponse } from './types/reflection';
+import { AppContext, ReflectionStatus } from './types/reflection';
 import { CSS_CLASSES, THEME } from './constants';
 
 /**
  * Main App component
  * 
- * This is the root component of the Todo application. It manages the overall
+ * This is the root component of the Reflection Learning application. It manages the overall
  * application state, coordinates between different components, and handles
- * the main user interactions.
+ * the main user interactions for reflection learning.
  * 
  * Features:
- * - Todo management through custom hooks
+ * - Reflection management through custom hooks
+ * - Tabbed context interface (Chat/Feedback/Write-Edit)
  * - Responsive sidebar navigation
  * - Real-time statistics display
  * - Local storage persistence
- * - Keyboard accessibility
+ * - Educational feedback system
  * 
  * @component
  * @returns {JSX.Element} The main application component
  */
 function App() {
-  // Custom hook for todo management
+  // Custom hooks for state management
   const {
-    todos,
-    isLoaded,
-    addTodo: addTodoToState,
-    toggleTodo,
-    deleteTodo: deleteTodoFromState,
+    reflections,
+    isLoaded: reflectionsLoaded,
+    selectedReflectionId,
+    addReflection,
+    updateReflection,
+    updateReflectionStatus,
+    deleteReflection,
+    selectReflection,
+    clearSelection,
+    getSelectedReflection,
     getStats,
-  } = useTodos();
+  } = useReflections();
+
+  const {
+    isSending,
+    sendMessage,
+    getMessagesForReflection,
+  } = useChat();
+
+  const {
+    activeContext,
+    isLoaded: contextLoaded,
+    switchContext,
+  } = useAppContext();
 
   // Local state for UI interactions
-  const [inputValue, setInputValue] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+  const [currentReflectionText, setCurrentReflectionText] = useState('');
+  const [feedback, setFeedback] = useState<StructuredResponse | null>(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+
+  // Get current reflection and messages
+  const selectedReflection = getSelectedReflection();
+  const currentMessages = selectedReflection ? getMessagesForReflection(selectedReflection.id) : [];
+
+  // Update current reflection text when selection changes
+  useEffect(() => {
+    if (selectedReflection) {
+      setCurrentReflectionText(selectedReflection.text);
+    } else {
+      setCurrentReflectionText('');
+    }
+  }, [selectedReflection]);
 
   /**
-   * Handles adding a new todo
+   * Handles creating a new reflection
+   * TODO: This will be used when implementing the "New Reflection" button
    */
-  const handleAddTodo = () => {
-    const newTodo = addTodoToState(inputValue);
-    if (newTodo) {
-      setSelectedTodo(newTodo); // Set the new todo as selected for feedback
-      setInputValue('');
+  const handleCreateReflection = () => {
+    const newReflection = addReflection('', `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+    if (newReflection) {
+      setCurrentReflectionText('');
+      switchContext(AppContext.WRITE_EDIT);
     }
   };
 
   /**
-   * Handles deleting a todo and clears selection if needed
+   * Handles updating reflection text
    */
-  const handleDeleteTodo = (id: string) => {
-    deleteTodoFromState(id);
-    // Clear selected todo if it was deleted
-    if (selectedTodo?.id === id) {
-      setSelectedTodo(null);
+  const handleUpdateReflectionText = (text: string) => {
+    setCurrentReflectionText(text);
+    if (selectedReflection) {
+      updateReflection(selectedReflection.id, text);
     }
   };
 
   /**
-   * Handles selecting a todo for editing
+   * Handles saving draft
    */
-  const handleSelectTodo = (todo: Todo) => {
-    setSelectedTodo(todo);
-    setInputValue(todo.text);
-    setIsSidebarOpen(false); // Close sidebar after selecting todo
+  const handleSaveDraft = () => {
+    if (currentReflectionText.trim()) {
+      if (selectedReflection) {
+        updateReflection(selectedReflection.id, currentReflectionText);
+        updateReflectionStatus(selectedReflection.id, ReflectionStatus.IN_PROGRESS);
+      } else {
+        const newReflection = addReflection(currentReflectionText);
+        if (newReflection) {
+          updateReflectionStatus(newReflection.id, ReflectionStatus.IN_PROGRESS);
+        }
+      }
+    }
   };
 
   /**
-   * Handles clearing the selected todo
+   * Handles submitting reflection for evaluation
    */
-  const handleClearSelection = () => {
-    setSelectedTodo(null);
-    setInputValue('');
+  const handleSubmitReflection = async () => {
+    if (!currentReflectionText.trim()) return;
+
+    setIsEvaluating(true);
+    
+    try {
+      // Create or update reflection
+      let reflection = selectedReflection;
+      if (!reflection) {
+        reflection = addReflection(currentReflectionText);
+      } else {
+        updateReflection(reflection.id, currentReflectionText);
+      }
+
+      if (reflection) {
+        // Call evaluation API
+        const response = await fetch('/api/evaluate-reflection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            reflectionText: currentReflectionText,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setFeedback(data.data);
+            
+            // Update reflection status based on evaluation
+            const status = data.data.status === 'excellent' ? ReflectionStatus.PASSED : ReflectionStatus.IN_PROGRESS;
+            updateReflectionStatus(reflection.id, status);
+            
+            // Switch to feedback context
+            switchContext(AppContext.FEEDBACK);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error evaluating reflection:', error);
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
+  /**
+   * Handles sending chat message
+   */
+  const handleSendChatMessage = async (content: string) => {
+    if (selectedReflection) {
+      await sendMessage(selectedReflection.id, content, selectedReflection);
+    }
+  };
+
+  /**
+   * Handles selecting a reflection
+   */
+  const handleSelectReflection = (reflection: Reflection) => {
+    selectReflection(reflection.id);
+    setIsSidebarOpen(false);
+  };
+
+  /**
+   * Handles deleting a reflection
+   */
+  const handleDeleteReflection = (id: string) => {
+    deleteReflection(id);
+    if (selectedReflection?.id === id) {
+      clearSelection();
+      setCurrentReflectionText('');
+      setFeedback(null);
+    }
   };
 
   /**
@@ -106,7 +220,7 @@ function App() {
   const stats = getStats();
 
   // Don't render until data is loaded
-  if (!isLoaded) {
+  if (!reflectionsLoaded || !contextLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="text-white text-lg">Loading...</div>
@@ -120,26 +234,57 @@ function App() {
       <Header onMenuClick={handleOpenSidebar} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-8">
-        <div className={`w-full ${CSS_CLASSES.MAX_CONTENT_WIDTH}`}>
-          {/* Todo Input */}
-          <TodoInput
-            value={inputValue}
-            onChange={setInputValue}
-            onAdd={handleAddTodo}
-          />
-
-          {/* Feedback View - Show selected/most recent todo */}
-          {selectedTodo && (
-            <TodoFeedback
-              selectedTodo={selectedTodo}
-              isLatest={selectedTodo.id === todos[0]?.id}
-              onClear={handleClearSelection}
+      <main className="flex-1 flex flex-col px-4 py-6">
+        <div className={`w-full ${CSS_CLASSES.MAX_CONTENT_WIDTH} mx-auto`}>
+          {/* Context Tabs */}
+          <div className="mb-4">
+            <ContextTabs
+              activeContext={activeContext}
+              onContextChange={switchContext}
+              hasReflection={!!selectedReflection}
             />
-          )}
+          </div>
+
+          {/* Context Content */}
+          <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-pink-500/20 p-4 h-[calc(100vh-200px)] flex flex-col">
+            {activeContext === AppContext.CHAT && (
+              <ChatContext
+                reflection={selectedReflection}
+                messages={currentMessages}
+                onSendMessage={handleSendChatMessage}
+                isSending={isSending}
+              />
+            )}
+
+            {activeContext === AppContext.FEEDBACK && (
+              <FeedbackContext
+                reflection={selectedReflection}
+                feedback={feedback}
+                isLoading={isEvaluating}
+              />
+            )}
+
+            {activeContext === AppContext.WRITE_EDIT && (
+              <WriteEditContext
+                reflectionText={currentReflectionText}
+                onTextChange={handleUpdateReflectionText}
+                onSubmit={handleSubmitReflection}
+                onSaveDraft={handleSaveDraft}
+                isSubmitting={isEvaluating}
+                status={selectedReflection?.status || ReflectionStatus.PENDING}
+              />
+            )}
+          </div>
 
           {/* Stats */}
-          <Stats total={stats.total} completed={stats.completed} />
+          <div className="mt-4">
+            <Stats 
+              total={stats.total} 
+              completed={stats.passed}
+              pending={stats.pending}
+              inProgress={stats.inProgress}
+            />
+          </div>
         </div>
       </main>
 
@@ -147,11 +292,10 @@ function App() {
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
-        todos={todos}
-        onToggle={toggleTodo}
-        onDelete={handleDeleteTodo}
-        onSelect={handleSelectTodo}
-        selectedTodoId={selectedTodo?.id}
+        reflections={reflections}
+        onSelect={handleSelectReflection}
+        onDelete={handleDeleteReflection}
+        selectedReflectionId={selectedReflectionId || undefined}
       />
 
       {/* Footer */}

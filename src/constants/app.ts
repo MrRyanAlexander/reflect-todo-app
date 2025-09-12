@@ -2,9 +2,12 @@
  * Application constants and configuration values
  */
 
-/** Local storage key for persisting todos */
+/** Local storage keys for persisting app data */
 export const STORAGE_KEYS = {
-  TODOS: 'todos',
+  REFLECTIONS: 'reflections',
+  CHAT_SESSIONS: 'chatSessions',
+  ACTIVE_CONTEXT: 'activeContext',
+  SELECTED_REFLECTION_ID: 'selectedReflectionId',
 } as const;
 
 /** Application metadata */
