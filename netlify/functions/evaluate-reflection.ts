@@ -196,16 +196,46 @@ Guidelines for evaluation:
 - Give hints and suggestions, never direct answers
 - Consider this is for ELL students - be patient and clear
 
-Return your evaluation as JSON matching the provided schema.`;
+IMPORTANT: You MUST return ONLY valid JSON in the following exact format:
+{
+  "feedback": {
+    "happened": {
+      "pass": true/false,
+      "remarks": "brief comment",
+      "suggestions": ["suggestion1", "suggestion2"]
+    },
+    "feeling": {
+      "pass": true/false,
+      "remarks": "brief comment",
+      "suggestions": ["suggestion1", "suggestion2"]
+    },
+    "next": {
+      "pass": true/false,
+      "remarks": "brief comment",
+      "suggestions": ["suggestion1", "suggestion2"]
+    }
+  },
+  "suggestions": ["overall suggestion 1", "overall suggestion 2"],
+  "overallScore": 75,
+  "status": "needs-work"
+}
+
+Do not include any text before or after the JSON. Return ONLY the JSON object.`;
 
     // Call OpenAI Responses API with GPT-5
     const response = await openai.responses.create({
       model: "gpt-5",
       input: evaluationPrompt,
-      verbosity: "low",
-      reasoning_effort: "minimal",
+      reasoning: {
+        effort: "minimal"
+      },
       max_output_tokens: 400,
-      response_format: GPT5ResponseSchema
+      text: {
+        format: {
+          type: "json_object"
+        },
+        verbosity: "low"
+      }
     });
 
     // Parse the response content
@@ -217,8 +247,12 @@ Return your evaluation as JSON matching the provided schema.`;
     // Parse JSON response
     let parsedResponse: EvaluationResponse;
     try {
+      // Log the raw response for debugging
+      console.log('Raw OpenAI response:', responseContent);
       parsedResponse = JSON.parse(responseContent);
     } catch (parseError) {
+      console.error('Parse error:', parseError);
+      console.error('Raw response:', responseContent);
       throw new Error(`Failed to parse OpenAI response: ${parseError}`);
     }
 

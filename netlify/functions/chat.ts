@@ -147,9 +147,13 @@ Guidelines:
     const response = await openai.responses.create({
       model: "gpt-5",
       input: systemPrompt,
-      verbosity: "low",
-      reasoning_effort: "minimal",
-      max_output_tokens: 200
+      reasoning: {
+        effort: "minimal"
+      },
+      max_output_tokens: 200,
+      text: {
+        verbosity: "low"
+      }
     });
 
     // Parse the response content
