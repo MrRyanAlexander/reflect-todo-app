@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiCheck, FiX, FiAlertCircle, FiTrendingUp, FiTarget } from 'react-icons/fi';
+import { FiCheck, FiAlertCircle, FiTrendingUp, FiTarget } from 'react-icons/fi';
 import type { FeedbackContextProps } from '../types/reflection';
 
 /**

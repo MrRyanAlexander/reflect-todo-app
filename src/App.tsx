@@ -84,17 +84,7 @@ function App() {
     }
   }, [selectedReflection]);
 
-  /**
-   * Handles creating a new reflection
-   * TODO: This will be used when implementing the "New Reflection" button
-   */
-  const handleCreateReflection = () => {
-    const newReflection = addReflection('', `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
-    if (newReflection) {
-      setCurrentReflectionText('');
-      switchContext(AppContext.WRITE_EDIT);
-    }
-  };
+  // TODO: Implement handleCreateReflection when "New Reflection" button is added
 
   /**
    * Handles updating reflection text

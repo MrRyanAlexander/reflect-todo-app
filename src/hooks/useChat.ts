@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ChatMessage, ChatSession, MessageRole, Reflection } from '../types/reflection';
+import { MessageRole as MessageRoleConst } from '../types/reflection';
 import { 
   loadChatSessionsFromStorage, 
   saveChatSessionsToStorage,
@@ -131,7 +132,7 @@ export const useChat = () => {
 
     try {
       // Add user message
-      const userMessageAdded = addMessage(reflectionId, message, 'user', 'general');
+      const userMessageAdded = addMessage(reflectionId, message, MessageRoleConst.USER, 'general');
       if (!userMessageAdded) {
         setIsSending(false);
         return false;
@@ -166,7 +167,7 @@ export const useChat = () => {
       
       if (data.success && data.data) {
         // Add AI response
-        addMessage(reflectionId, data.data.response, 'assistant', data.data.context);
+        addMessage(reflectionId, data.data.response, MessageRoleConst.ASSISTANT, data.data.context);
         return true;
       } else {
         throw new Error(data.error || 'Failed to get response');
@@ -176,7 +177,7 @@ export const useChat = () => {
       console.error('Error sending message:', error);
       
       // Add error message
-      addMessage(reflectionId, 'Sorry, I had trouble responding. Please try again.', 'assistant', 'general');
+      addMessage(reflectionId, 'Sorry, I had trouble responding. Please try again.', MessageRoleConst.ASSISTANT, 'general');
       return false;
     } finally {
       setIsSending(false);
@@ -214,7 +215,7 @@ export const useChat = () => {
    */
   const getLatestMessage = useCallback((reflectionId: string): ChatMessage | null => {
     const messages = getMessagesForReflection(reflectionId);
-    return messages.length > 0 ? messages[messages.length - 1] : null;
+    return messages.length > 0 ? messages[messages.length - 1] || null : null;
   }, [getMessagesForReflection]);
 
   /**

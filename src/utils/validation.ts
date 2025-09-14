@@ -226,3 +226,33 @@ export const getChatMessageValidationError = (text: string): string | null => {
   
   return null;
 };
+
+/**
+ * Todo-related validation functions (for compatibility with existing code)
+ */
+
+/**
+ * Generates a unique ID for a todo
+ * @returns {string} Unique todo ID
+ */
+export const generateTodoId = (): string => {
+  return `todo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+/**
+ * Validates todo text
+ * @param {string} text - Text to validate
+ * @returns {boolean} True if valid, false otherwise
+ */
+export const isValidTodoText = (text: string): boolean => {
+  return text.trim().length > 0 && text.trim().length <= 500;
+};
+
+/**
+ * Sanitizes todo text by trimming whitespace
+ * @param {string} text - Text to sanitize
+ * @returns {string} Sanitized text
+ */
+export const sanitizeTodoText = (text: string): string => {
+  return text.trim();
+};

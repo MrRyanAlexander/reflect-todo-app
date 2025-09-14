@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Reflection, ReflectionStatus } from '../types/reflection';
+import { ReflectionStatus as ReflectionStatusConst } from '../types/reflection';
 import { 
   loadReflectionsFromStorage, 
   saveReflectionsToStorage,
@@ -60,7 +61,7 @@ export const useReflections = () => {
     const newReflection: Reflection = {
       id: generateReflectionId(),
       text: sanitizedText,
-      status: 'pending',
+      status: ReflectionStatusConst.PENDING,
       createdAt: new Date(),
       updatedAt: new Date(),
       chatSessionId: chatSessionId || `chat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -183,7 +184,7 @@ export const useReflections = () => {
    * @returns {Reflection | null} The most recent reflection or null
    */
   const getLatestReflection = useCallback((): Reflection | null => {
-    return reflections.length > 0 ? reflections[0] : null;
+    return reflections.length > 0 ? reflections[0] || null : null;
   }, [reflections]);
 
   /**

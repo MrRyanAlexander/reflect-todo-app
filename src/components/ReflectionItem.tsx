@@ -66,6 +66,7 @@ export const ReflectionItem: React.FC<ReflectionItemProps> = ({
    */
   const getPreview = () => {
     const firstSentence = reflection.text.split('.')[0];
+    if (!firstSentence) return reflection.text;
     return firstSentence.length > 60 
       ? firstSentence.substring(0, 60) + '...'
       : firstSentence;

@@ -28,6 +28,10 @@ export const UI_TEXT = {
   ADD_NEW_TODO: 'Add a new todo',
   MADE_WITH_LOVE: 'Made with 💖 for staying organized',
   CLEAR_SELECTION: 'Clear selection',
+  NO_REFLECTIONS_MESSAGE: 'No reflections yet!',
+  NO_REFLECTIONS_SUBTITLE: 'Start your first reflection to get started',
+  REFLECTION_HISTORY: 'Reflection History',
+  NEW_REFLECTION: 'New Reflection',
 } as const;
 
 /** CSS class names for consistent styling */

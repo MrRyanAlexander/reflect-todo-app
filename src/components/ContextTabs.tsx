@@ -81,7 +81,6 @@ export const ContextTabs: React.FC<ContextTabsProps> = ({
       <div className="flex space-x-1">
         {Object.values(AppContext).map((context) => {
           const contextInfo = getContextInfo(context);
-          const isActive = activeContext === context;
           const isDisabled = !contextInfo.available;
 
           return (

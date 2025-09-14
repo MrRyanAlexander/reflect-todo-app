@@ -224,3 +224,37 @@ export const clearAllStorage = (): void => {
     console.error('Error clearing storage:', error);
   }
 };
+
+/**
+ * Todo-related storage functions (for compatibility with existing code)
+ */
+
+/**
+ * Loads todos from localStorage
+ * @returns {any[]} Array of todos or empty array if none exist
+ */
+export const loadTodosFromStorage = (): any[] => {
+  try {
+    const stored = localStorage.getItem('todos');
+    if (!stored) {
+      return [];
+    }
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error('Error loading todos from localStorage:', error);
+    return [];
+  }
+};
+
+/**
+ * Saves todos to localStorage
+ * @param {any[]} todos - Array of todos to save
+ */
+export const saveTodosToStorage = (todos: any[]): void => {
+  try {
+    localStorage.setItem('todos', JSON.stringify(todos));
+  } catch (error) {
+    console.error('Error saving todos to localStorage:', error);
+  }
+};

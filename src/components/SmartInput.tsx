@@ -75,7 +75,7 @@ export const SmartInput: React.FC<SmartInputProps> = ({
    */
   const handleSend = () => {
     if (inputValue.trim() && !disabled) {
-      onSend();
+      onSend(inputValue.trim());
       setInputValue('');
     }
   };

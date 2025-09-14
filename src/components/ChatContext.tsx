@@ -42,7 +42,6 @@ export const ChatContext: React.FC<ChatContextProps> = ({
    */
   const renderMessage = (message: any, index: number) => {
     const isUser = message.role === MessageRole.USER;
-    const isAssistant = message.role === MessageRole.ASSISTANT;
     const isSystem = message.role === MessageRole.SYSTEM;
 
     if (isSystem) {
@@ -182,7 +181,7 @@ export const ChatContext: React.FC<ChatContextProps> = ({
         <SmartInput
           value=""
           onChange={() => {}}
-          onSend={handleSendMessage}
+          onSend={(message) => reflection && handleSendMessage(message)}
           context={AppContext.CHAT}
           disabled={isSending || !reflection}
           placeholder={reflection ? "Ask me anything about your reflection..." : "Create a reflection first to start chatting"}

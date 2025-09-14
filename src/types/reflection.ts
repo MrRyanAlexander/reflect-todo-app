@@ -59,24 +59,26 @@ export interface ChatSession {
 }
 
 /**
- * Reflection status enum
- * @enum ReflectionStatus
+ * Reflection status constants
  */
-export enum ReflectionStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in-progress',
-  PASSED = 'passed'
-}
+export const ReflectionStatus = {
+  PENDING: 'pending',
+  IN_PROGRESS: 'in-progress',
+  PASSED: 'passed'
+} as const;
+
+export type ReflectionStatus = typeof ReflectionStatus[keyof typeof ReflectionStatus];
 
 /**
- * Message role enum
- * @enum MessageRole
+ * Message role constants
  */
-export enum MessageRole {
-  USER = 'user',
-  ASSISTANT = 'assistant',
-  SYSTEM = 'system'
-}
+export const MessageRole = {
+  USER: 'user',
+  ASSISTANT: 'assistant',
+  SYSTEM: 'system'
+} as const;
+
+export type MessageRole = typeof MessageRole[keyof typeof MessageRole];
 
 /**
  * Structured response interface for LLM feedback
@@ -111,14 +113,15 @@ export interface FeedbackItem {
 }
 
 /**
- * App context enum for tabbed interface
- * @enum AppContext
+ * App context constants for tabbed interface
  */
-export enum AppContext {
-  CHAT = 'chat',
-  FEEDBACK = 'feedback',
-  WRITE_EDIT = 'write-edit'
-}
+export const AppContext = {
+  CHAT: 'chat',
+  FEEDBACK: 'feedback',
+  WRITE_EDIT: 'write-edit'
+} as const;
+
+export type AppContext = typeof AppContext[keyof typeof AppContext];
 
 /**
  * Props interface for the ReflectionList component
@@ -220,7 +223,7 @@ export interface SmartInputProps {
   /** Callback function when input value changes */
   onChange: (value: string) => void;
   /** Callback function to send message */
-  onSend: () => void;
+  onSend: (message: string) => void;
   /** Current context for placeholder text */
   context: AppContext;
   /** Whether input is disabled */
