@@ -120,7 +120,14 @@ export const useChat = () => {
     
     // Update sessions array
     setChatSessions(prevSessions => {
-      const updated = updateChatSession(prevSessions, updatedSession);
+      let updated;
+      if (prevSessions.length === 0 || !prevSessions.find(s => s.id === updatedSession.id)) {
+        // If no sessions exist or this is a new session, add it to the array
+        updated = [...prevSessions, updatedSession];
+      } else {
+        // If session exists, update it
+        updated = updateChatSession(prevSessions, updatedSession);
+      }
       console.log('addMessage - updated sessions:', updated);
       return updated;
     });
