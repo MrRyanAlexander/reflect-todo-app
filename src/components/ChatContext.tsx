@@ -16,6 +16,11 @@ export const ChatContext: React.FC<ChatContextProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Debug logging
+  console.log('ChatContext - messages:', messages);
+  console.log('ChatContext - reflection:', reflection);
+  console.log('ChatContext - isSending:', isSending);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

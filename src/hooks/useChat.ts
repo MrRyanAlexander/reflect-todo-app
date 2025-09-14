@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ChatMessage, ChatSession, MessageRole, Reflection } from '../types/reflection';
 import { MessageRole as MessageRoleConst } from '../types/reflection';
 import { 
@@ -23,13 +23,20 @@ export const useChat = () => {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const chatSessionsRef = useRef<ChatSession[]>([]);
 
   // Load chat sessions from localStorage on mount
   useEffect(() => {
     const savedSessions = loadChatSessionsFromStorage();
     setChatSessions(savedSessions);
+    chatSessionsRef.current = savedSessions;
     setIsLoaded(true);
   }, []);
+
+  // Update ref whenever sessions change
+  useEffect(() => {
+    chatSessionsRef.current = chatSessions;
+  }, [chatSessions]);
 
   // Save chat sessions to localStorage whenever sessions change (but only after initial load)
   useEffect(() => {
@@ -64,9 +71,12 @@ export const useChat = () => {
    * @returns {ChatMessage[]} Array of messages for the reflection
    */
   const getMessagesForReflection = useCallback((reflectionId: string): ChatMessage[] => {
-    const session = getChatSessionForReflection(chatSessions, reflectionId);
+    const session = getChatSessionForReflection(chatSessionsRef.current, reflectionId);
+    console.log('getMessagesForReflection - reflectionId:', reflectionId);
+    console.log('getMessagesForReflection - session:', session);
+    console.log('getMessagesForReflection - all sessions:', chatSessionsRef.current);
     return session ? session.messages : [];
-  }, [chatSessions]);
+  }, []);
 
   /**
    * Adds a message to a chat session
@@ -100,7 +110,7 @@ export const useChat = () => {
     };
 
     // Get or create chat session
-    let session = getChatSessionForReflection(chatSessions, reflectionId);
+    let session = getChatSessionForReflection(chatSessionsRef.current, reflectionId);
     if (!session) {
       session = createChatSession(reflectionId);
     }
@@ -109,10 +119,14 @@ export const useChat = () => {
     const updatedSession = addMessageToChatSession(session, message);
     
     // Update sessions array
-    setChatSessions(prevSessions => updateChatSession(prevSessions, updatedSession));
+    setChatSessions(prevSessions => {
+      const updated = updateChatSession(prevSessions, updatedSession);
+      console.log('addMessage - updated sessions:', updated);
+      return updated;
+    });
     
     return true;
-  }, [chatSessions]);
+  }, []);
 
   /**
    * Sends a user message and gets AI response
@@ -182,7 +196,7 @@ export const useChat = () => {
     } finally {
       setIsSending(false);
     }
-  }, [isSending, addMessage, getMessagesForReflection]);
+  }, [addMessage, getMessagesForReflection]);
 
   /**
    * Clears all messages for a reflection
