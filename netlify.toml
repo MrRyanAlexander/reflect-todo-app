@@ -10,9 +10,8 @@
 
 # Environment variables for functions
 [functions]
-  # Environment variables for Netlify Functions
-  OPENAI_API_KEY = "your-openai-api-key-here"
-
+  directory = "functions/"
+  
 # Redirect API calls to Netlify Functions
 [[redirects]]
   from = "/api/*"
