@@ -247,12 +247,8 @@ Do not include any text before or after the JSON. Return ONLY the JSON object.`;
     // Parse JSON response
     let parsedResponse: EvaluationResponse;
     try {
-      // Log the raw response for debugging
-      console.log('Raw OpenAI response:', responseContent);
       parsedResponse = JSON.parse(responseContent);
     } catch (parseError) {
-      console.error('Parse error:', parseError);
-      console.error('Raw response:', responseContent);
       throw new Error(`Failed to parse OpenAI response: ${parseError}`);
     }
 

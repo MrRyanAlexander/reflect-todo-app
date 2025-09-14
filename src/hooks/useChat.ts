@@ -72,9 +72,6 @@ export const useChat = () => {
    */
   const getMessagesForReflection = useCallback((reflectionId: string): ChatMessage[] => {
     const session = getChatSessionForReflection(chatSessions, reflectionId);
-    console.log('getMessagesForReflection - reflectionId:', reflectionId);
-    console.log('getMessagesForReflection - session:', session);
-    console.log('getMessagesForReflection - all sessions:', chatSessions);
     return session ? session.messages : [];
   }, [chatSessions]);
 
@@ -92,11 +89,9 @@ export const useChat = () => {
     role: MessageRole, 
     context: 'general' | 'reflection-help' | 'feedback-discussion' = 'general'
   ): boolean => {
-    console.log('addMessage called:', { reflectionId, content, role, context });
     const sanitizedContent = sanitizeChatMessage(content);
     
     if (!isValidChatMessage(sanitizedContent)) {
-      console.log('addMessage: invalid message content');
       return false;
     }
 
@@ -130,7 +125,6 @@ export const useChat = () => {
         // If session exists, update it
         updated = updateChatSession(prevSessions, updatedSession);
       }
-      console.log('addMessage - updated sessions:', updated);
       return updated;
     });
     
@@ -154,10 +148,8 @@ export const useChat = () => {
     setIsSending(true);
 
     try {
-      console.log('sendMessage: adding user message');
       // Add user message
       const userMessageAdded = addMessage(reflectionId, message, MessageRoleConst.USER, 'general');
-      console.log('sendMessage: user message added:', userMessageAdded);
       if (!userMessageAdded) {
         setIsSending(false);
         return false;
@@ -191,10 +183,8 @@ export const useChat = () => {
       const data = await response.json();
       
       if (data.success && data.data) {
-        console.log('sendMessage: adding AI response');
         // Add AI response
-        const aiMessageAdded = addMessage(reflectionId, data.data.response, MessageRoleConst.ASSISTANT, data.data.context);
-        console.log('sendMessage: AI message added:', aiMessageAdded);
+        addMessage(reflectionId, data.data.response, MessageRoleConst.ASSISTANT, data.data.context);
         return true;
       } else {
         throw new Error(data.error || 'Failed to get response');
