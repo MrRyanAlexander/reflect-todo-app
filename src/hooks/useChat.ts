@@ -71,12 +71,12 @@ export const useChat = () => {
    * @returns {ChatMessage[]} Array of messages for the reflection
    */
   const getMessagesForReflection = useCallback((reflectionId: string): ChatMessage[] => {
-    const session = getChatSessionForReflection(chatSessionsRef.current, reflectionId);
+    const session = getChatSessionForReflection(chatSessions, reflectionId);
     console.log('getMessagesForReflection - reflectionId:', reflectionId);
     console.log('getMessagesForReflection - session:', session);
-    console.log('getMessagesForReflection - all sessions:', chatSessionsRef.current);
+    console.log('getMessagesForReflection - all sessions:', chatSessions);
     return session ? session.messages : [];
-  }, []);
+  }, [chatSessions]);
 
   /**
    * Adds a message to a chat session
@@ -92,9 +92,11 @@ export const useChat = () => {
     role: MessageRole, 
     context: 'general' | 'reflection-help' | 'feedback-discussion' = 'general'
   ): boolean => {
+    console.log('addMessage called:', { reflectionId, content, role, context });
     const sanitizedContent = sanitizeChatMessage(content);
     
     if (!isValidChatMessage(sanitizedContent)) {
+      console.log('addMessage: invalid message content');
       return false;
     }
 
@@ -110,7 +112,7 @@ export const useChat = () => {
     };
 
     // Get or create chat session
-    let session = getChatSessionForReflection(chatSessionsRef.current, reflectionId);
+    let session = getChatSessionForReflection(chatSessions, reflectionId);
     if (!session) {
       session = createChatSession(reflectionId);
     }
@@ -133,7 +135,7 @@ export const useChat = () => {
     });
     
     return true;
-  }, []);
+  }, [chatSessions]);
 
   /**
    * Sends a user message and gets AI response
@@ -152,8 +154,10 @@ export const useChat = () => {
     setIsSending(true);
 
     try {
+      console.log('sendMessage: adding user message');
       // Add user message
       const userMessageAdded = addMessage(reflectionId, message, MessageRoleConst.USER, 'general');
+      console.log('sendMessage: user message added:', userMessageAdded);
       if (!userMessageAdded) {
         setIsSending(false);
         return false;
@@ -187,8 +191,10 @@ export const useChat = () => {
       const data = await response.json();
       
       if (data.success && data.data) {
+        console.log('sendMessage: adding AI response');
         // Add AI response
-        addMessage(reflectionId, data.data.response, MessageRoleConst.ASSISTANT, data.data.context);
+        const aiMessageAdded = addMessage(reflectionId, data.data.response, MessageRoleConst.ASSISTANT, data.data.context);
+        console.log('sendMessage: AI message added:', aiMessageAdded);
         return true;
       } else {
         throw new Error(data.error || 'Failed to get response');
