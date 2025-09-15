@@ -69,7 +69,8 @@ export default async function handler(request: Request): Promise<Response> {
       message, 
       reflectionText, 
       chatHistory = [], 
-      context = 'general' 
+      context = 'general',
+      currentFeedback = null
     } = body;
 
     if (!message || typeof message !== 'string') {
@@ -100,25 +101,48 @@ export default async function handler(request: Request): Promise<Response> {
     }
 
     // Build context-aware prompt
-    let systemPrompt = `You are a supportive 6-7th grade ELL writing coach helping students with their daily reflections. 
+    let systemPrompt = `You are a supportive 6-7th grade ELL writing coach helping students fix their daily reflections to pass.
 
 Your role:
-- Be encouraging, patient, and supportive
-- Provide hints and guidance, never direct answers
-- Use age-appropriate language (6-7th grade level)
-- Help students think through their reflection requirements
-- Focus on what happened, how they felt, and what they'll do next
+- Help students identify what's missing to get a passing score
+- Give ONE specific, actionable fix at a time
+- Use simple, encouraging language
+- Focus on the three requirements: what happened, how they felt, what they'll do next
 
 Guidelines:
-- Keep responses under 100 words
-- Ask questions to help them think deeper
-- Give specific, actionable suggestions
-- Be positive and build their confidence
-- Never write their reflection for them`;
+- Keep responses under 60 words
+- Give ONE clear suggestion, not a list
+- Ask ONE simple question to help them think
+- Be encouraging but focused on the fix
+- If they have multiple issues, mention 2-3 briefly, then focus on the most important one
+- IMPORTANT: If their score is 75% or higher, say "Your reflection looks great! Ready to submit?" and stop asking for changes
+- Don't be overly critical - if they have the basic elements, they should pass`;
 
     // Add reflection context if available
     if (reflectionText && reflectionText.trim()) {
       systemPrompt += `\n\nCurrent reflection the student is working on: "${reflectionText}"`;
+    }
+
+    // Add feedback context if available
+    if (currentFeedback) {
+      systemPrompt += `\n\nCurrent feedback on their reflection:`;
+      if (currentFeedback.feedback) {
+        systemPrompt += `\n- What happened: ${currentFeedback.feedback.happened.pass ? 'PASS' : 'NEEDS WORK'} - ${currentFeedback.feedback.happened.remarks}`;
+        if (currentFeedback.feedback.happened.suggestions && currentFeedback.feedback.happened.suggestions.length > 0) {
+          systemPrompt += ` Suggestion: ${currentFeedback.feedback.happened.suggestions[0]}`;
+        }
+        
+        systemPrompt += `\n- How they felt: ${currentFeedback.feedback.feeling.pass ? 'PASS' : 'NEEDS WORK'} - ${currentFeedback.feedback.feeling.remarks}`;
+        if (currentFeedback.feedback.feeling.suggestions && currentFeedback.feedback.feeling.suggestions.length > 0) {
+          systemPrompt += ` Suggestion: ${currentFeedback.feedback.feeling.suggestions[0]}`;
+        }
+        
+        systemPrompt += `\n- What they'll do next: ${currentFeedback.feedback.next.pass ? 'PASS' : 'NEEDS WORK'} - ${currentFeedback.feedback.next.remarks}`;
+        if (currentFeedback.feedback.next.suggestions && currentFeedback.feedback.next.suggestions.length > 0) {
+          systemPrompt += ` Suggestion: ${currentFeedback.feedback.next.suggestions[0]}`;
+        }
+      }
+      systemPrompt += `\nOverall score: ${currentFeedback.overallScore}%`;
     }
 
     // Add chat history context

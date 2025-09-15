@@ -12,9 +12,9 @@ export const STORAGE_KEYS = {
 
 /** Application metadata */
 export const APP_CONFIG = {
-  NAME: 'My Todo List',
+  NAME: 'Daily Reflection AI',
   VERSION: '1.0.0',
-  DESCRIPTION: 'A beautiful and modern todo list application',
+  DESCRIPTION: 'A beautiful and modern daily reflection application',
 } as const;
 
 /** UI text constants */

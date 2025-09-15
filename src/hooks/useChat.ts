@@ -117,15 +117,14 @@ export const useChat = () => {
     
     // Update sessions array
     setChatSessions(prevSessions => {
-      let updated;
-      if (prevSessions.length === 0 || !prevSessions.find(s => s.id === updatedSession.id)) {
-        // If no sessions exist or this is a new session, add it to the array
-        updated = [...prevSessions, updatedSession];
-      } else {
+      const existingSessionIndex = prevSessions.findIndex(s => s.id === updatedSession.id);
+      if (existingSessionIndex >= 0) {
         // If session exists, update it
-        updated = updateChatSession(prevSessions, updatedSession);
+        return updateChatSession(prevSessions, updatedSession);
+      } else {
+        // If this is a new session, add it to the array
+        return [...prevSessions, updatedSession];
       }
-      return updated;
     });
     
     return true;
@@ -136,12 +135,14 @@ export const useChat = () => {
    * @param {string} reflectionId - ID of the reflection
    * @param {string} message - User message
    * @param {Reflection | null} currentReflection - Current reflection for context
+   * @param {any} currentFeedback - Current feedback for context
    * @returns {Promise<boolean>} True if message was sent successfully
    */
   const sendMessage = useCallback(async (
     reflectionId: string, 
     message: string, 
-    currentReflection: Reflection | null
+    currentReflection: Reflection | null,
+    currentFeedback: any = null
   ): Promise<boolean> => {
     if (isSending) return false;
 
@@ -172,7 +173,8 @@ export const useChat = () => {
           message,
           reflectionText: currentReflection?.text || '',
           chatHistory,
-          context: 'reflection-help'
+          context: 'reflection-help',
+          currentFeedback
         }),
       });
 

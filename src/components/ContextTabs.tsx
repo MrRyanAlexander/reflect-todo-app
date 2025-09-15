@@ -18,16 +18,9 @@ export const ContextTabs: React.FC<ContextTabsProps> = ({
     switch (context) {
       case AppContext.CHAT:
         return {
-          label: 'Chat',
+          label: 'Chat & Feedback',
           icon: '💬',
-          description: 'Get help and ask questions',
-          available: hasReflection
-        };
-      case AppContext.FEEDBACK:
-        return {
-          label: 'Feedback',
-          icon: '📊',
-          description: 'View feedback and suggestions',
+          description: 'Get help and see your progress',
           available: hasReflection
         };
       case AppContext.WRITE_EDIT:
@@ -79,7 +72,7 @@ export const ContextTabs: React.FC<ContextTabsProps> = ({
   return (
     <div className="bg-slate-800/30 backdrop-blur-sm rounded-lg border border-pink-500/20 p-2">
       <div className="flex space-x-1">
-        {Object.values(AppContext).map((context) => {
+        {[AppContext.CHAT, AppContext.WRITE_EDIT].map((context) => {
           const contextInfo = getContextInfo(context);
           const isDisabled = !contextInfo.available;
 

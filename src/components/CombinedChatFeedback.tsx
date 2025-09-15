@@ -1,19 +1,21 @@
 import React, { useEffect, useRef } from 'react';
-import type { ChatContextProps } from '../types/reflection';
+import type { ChatContextProps, FeedbackContextProps } from '../types/reflection';
 import { MessageRole } from '../types/reflection';
 import { SmartInput } from './SmartInput';
 import { PinnedReflection } from './PinnedReflection';
 import { AppContext } from '../types/reflection';
 
 /**
- * Chat context component for conversational interface
- * Displays chat messages with bubbles and handles user input
+ * Combined Chat and Feedback component
+ * Shows feedback at the top and chat below for a unified experience
  */
-export const ChatContext: React.FC<ChatContextProps> = ({
+export const CombinedChatFeedback: React.FC<ChatContextProps & FeedbackContextProps> = ({
   reflection,
   messages,
   onSendMessage,
   isSending,
+  feedback,
+  onEdit,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -42,12 +44,10 @@ export const ChatContext: React.FC<ChatContextProps> = ({
    * Formats assistant message content with better styling
    */
   const formatAssistantMessage = (content: string) => {
-    // Split content into lines and format
     const lines = content.split('\n').filter(line => line.trim());
     const formattedLines = lines.map((line, index) => {
       const trimmedLine = line.trim();
       
-      // Check for bullet points or lists
       if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
         return (
           <div key={index} className="flex items-start space-x-2 mb-1">
@@ -57,7 +57,6 @@ export const ChatContext: React.FC<ChatContextProps> = ({
         );
       }
       
-      // Check for questions (lines ending with ?)
       if (trimmedLine.endsWith('?')) {
         return (
           <div key={index} className="flex items-start space-x-2 mb-2">
@@ -67,7 +66,6 @@ export const ChatContext: React.FC<ChatContextProps> = ({
         );
       }
       
-      // Regular text
       return (
         <div key={index} className="mb-2 text-slate-200">
           {trimmedLine}
@@ -85,6 +83,101 @@ export const ChatContext: React.FC<ChatContextProps> = ({
     const readyPhrases = ['ready to submit', 'looks great', 'ready to pass', 'good to go'];
     return readyPhrases.some(phrase => content.toLowerCase().includes(phrase));
   };
+
+  // Unused functions commented out to fix compilation
+  /*
+  const renderFeedbackItem = (title: string, item: any) => {
+    const isPassed = item.pass;
+    
+    return (
+      <div className="flex items-center space-x-3 p-2 rounded-lg bg-slate-800/30">
+        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+          isPassed 
+            ? 'bg-green-500/20 text-green-400' 
+            : 'bg-orange-500/20 text-orange-400'
+        }`}>
+          {isPassed ? '✓' : '!'}
+        </div>
+        
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <h4 className="text-xs font-medium text-white">{title}</h4>
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              isPassed 
+                ? 'bg-green-500/20 text-green-300' 
+                : 'bg-orange-500/20 text-orange-300'
+            }`}>
+              {isPassed ? 'Good' : 'Needs Work'}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  */
+
+  /*
+  const renderOverallScore = () => {
+    if (!feedback) return null;
+
+    const score = getDisplayScore(feedback.overallScore);
+    const status = feedback.status;
+    
+    const getScoreColor = () => {
+      if (score >= 80) return 'text-green-400';
+      if (score >= 60) return 'text-yellow-400';
+      return 'text-orange-400';
+    };
+
+    const getStatusText = () => {
+      switch (status) {
+        case 'excellent':
+        case 'good':
+          return 'Pass';
+        case 'needs-work':
+        default:
+          return 'Needs Work';
+      }
+    };
+
+    const getStatusColor = () => {
+      switch (status) {
+        case 'excellent':
+        case 'good':
+          return 'bg-green-500/20 text-green-300';
+        case 'needs-work':
+        default:
+          return 'bg-orange-500/20 text-orange-300';
+      }
+    };
+
+    return (
+      <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+        <div className="flex items-center space-x-3">
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+            status === 'excellent' || status === 'good' 
+              ? 'bg-green-500/20 text-green-400' 
+              : 'bg-orange-500/20 text-orange-400'
+          }`}>
+            {status === 'excellent' || status === 'good' ? '✓' : '!'}
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-white">Score</h3>
+            <p className={`text-xs px-2 py-1 rounded-full inline-block ${getStatusColor()}`}>
+              {getStatusText()}
+            </p>
+          </div>
+        </div>
+        
+        <div className="text-right">
+          <div className={`text-xl font-bold ${getScoreColor()}`}>
+            {score}%
+          </div>
+        </div>
+      </div>
+    );
+  };
+  */
 
   /**
    * Renders a message bubble
@@ -107,10 +200,9 @@ export const ChatContext: React.FC<ChatContextProps> = ({
     return (
       <div
         key={index}
-        className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
+        className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-3`}
       >
         <div className={`flex max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end space-x-2`}>
-          {/* Avatar */}
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
             isUser 
               ? 'bg-gradient-to-br from-pink-400 to-purple-500 text-white' 
@@ -121,7 +213,6 @@ export const ChatContext: React.FC<ChatContextProps> = ({
             {isUser ? '👤' : isReady ? '✅' : '🤖'}
           </div>
 
-          {/* Message bubble */}
           <div className={`px-4 py-3 rounded-2xl ${
             isUser
               ? 'bg-gradient-to-br from-pink-500 to-purple-500 text-white'
@@ -138,14 +229,11 @@ export const ChatContext: React.FC<ChatContextProps> = ({
               {formatTimestamp(message.timestamp)}
             </div>
             
-            {/* Ready to submit button */}
             {isReady && (
               <div className="mt-3 pt-3 border-t border-green-500/20">
                 <button
                   onClick={() => {
-                    // This will be handled by the parent component
                     if (window.confirm('Submit this reflection for final evaluation?')) {
-                      // Trigger submit action
                       const event = new CustomEvent('submitReflection');
                       window.dispatchEvent(event);
                     }
@@ -183,59 +271,48 @@ export const ChatContext: React.FC<ChatContextProps> = ({
 
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl">🤖</span>
-        </div>
         <h3 className="text-lg font-semibold text-white mb-2">How can I help?</h3>
-        <p className="text-slate-400 text-sm mb-4">
-          I'm here to help you improve your reflection. Ask me anything!
+        <p className="text-slate-400 text-sm mb-6">
+          I'm here to help you improve your reflection.
         </p>
-        <div className="space-y-2">
-          <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-lg p-4 text-left border border-blue-500/30">
-            <p className="text-blue-300 text-sm font-medium mb-2 flex items-center space-x-2">
-              <span>💡</span>
-              <span>Ask me to help fix your reflection:</span>
-            </p>
-            <div className="space-y-2">
-              <div className="flex items-start space-x-2">
-                <span className="text-pink-400 text-lg">✨</span>
-                <span className="text-slate-300 text-sm">"How do I make it better?"</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-pink-400 text-lg">✨</span>
-                <span className="text-slate-300 text-sm">"What's missing?"</span>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="text-pink-400 text-lg">✨</span>
-                <span className="text-slate-300 text-sm">"Is this ready to submit?"</span>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
+          <button
+            className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-500/30 rounded-lg p-3 text-left transition-colors"
+            onClick={() => handleSendMessage('How do I make it better?')}
+          >
+            <span className="text-slate-200 hover:text-white">How do I make it better?</span>
+          </button>
+          <button
+            className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-500/30 rounded-lg p-3 text-left transition-colors"
+            onClick={() => handleSendMessage('What\'s missing?')}
+          >
+            <span className="text-slate-200 hover:text-white">What's missing?</span>
+          </button>
+          <button
+            className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-500/30 rounded-lg p-3 text-left transition-colors"
+            onClick={() => handleSendMessage('Is this ready to submit?')}
+          >
+            <span className="text-slate-200 hover:text-white">Is this ready to submit?</span>
+          </button>
+          <button
+            className="bg-slate-700/50 hover:bg-slate-600/50 border border-slate-500/30 rounded-lg p-3 text-left transition-colors"
+            onClick={() => handleSendMessage('How do I fix the issues?')}
+          >
+            <span className="text-slate-200 hover:text-white">How do I fix the issues?</span>
+          </button>
         </div>
       </div>
     );
   };
 
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Pinned Reflection Banner */}
-      <PinnedReflection reflection={reflection} showText={true} />
-
-      {/* Header */}
-      <div className="flex items-center space-x-3 mb-4">
-        <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
-          <span className="text-white text-lg">💬</span>
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold text-white">Chat Assistant</h2>
-          <p className="text-slate-400 text-sm">
-            {reflection ? 'Get help with your reflection' : 'Create a reflection to get started'}
-          </p>
-        </div>
-      </div>
+      <PinnedReflection reflection={reflection} showText={true} feedback={feedback} onEdit={onEdit || (() => {})} />
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto mb-4 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto mb-3 space-y-3 min-h-0">
         {messages.length === 0 ? (
           renderWelcomeMessage()
         ) : (
@@ -244,7 +321,7 @@ export const ChatContext: React.FC<ChatContextProps> = ({
         
         {/* Typing indicator */}
         {isSending && (
-          <div className="flex justify-start mb-4">
+          <div className="flex justify-start mb-3">
             <div className="flex items-end space-x-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-sm text-slate-300">
                 🤖
@@ -264,14 +341,14 @@ export const ChatContext: React.FC<ChatContextProps> = ({
       </div>
 
       {/* Input area */}
-      <div className="border-t border-slate-700/50 pt-4">
+      <div className="border-t border-slate-700/50 pt-3">
         <SmartInput
           value=""
           onChange={() => {}}
           onSend={(message) => reflection && handleSendMessage(message)}
           context={AppContext.CHAT}
           disabled={isSending || !reflection}
-          placeholder={reflection ? "Ask me anything about your reflection..." : "Create a reflection first to start chatting"}
+          placeholder={reflection ? "Ask about your reflection..." : "Create a reflection first to start chatting"}
         />
       </div>
     </div>

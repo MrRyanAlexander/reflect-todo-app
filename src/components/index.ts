@@ -15,6 +15,8 @@ export { ChatContext } from './ChatContext';
 export { FeedbackContext } from './FeedbackContext';
 export { WriteEditContext } from './WriteEditContext';
 export { SmartInput } from './SmartInput';
+export { PinnedReflection } from './PinnedReflection';
+export { CombinedChatFeedback } from './CombinedChatFeedback';
 
 // Legacy todo components (to be removed)
 export { TodoInput } from './TodoInput';

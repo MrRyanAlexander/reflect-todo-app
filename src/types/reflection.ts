@@ -179,6 +179,8 @@ export interface ChatContextProps {
   onSendMessage: (content: string) => void;
   /** Whether a message is being sent */
   isSending: boolean;
+  /** Optional callback to switch to edit mode */
+  onEdit?: () => void;
 }
 
 /**
@@ -211,6 +213,8 @@ export interface WriteEditContextProps {
   isSubmitting: boolean;
   /** Current reflection status */
   status: ReflectionStatus;
+  /** Feedback data for showing similarity warnings */
+  feedback?: any;
 }
 
 /**
@@ -249,4 +253,14 @@ export interface SidebarProps {
   onDelete: (id: string) => void;
   /** ID of the currently selected reflection */
   selectedReflectionId?: string | undefined;
+  /** Callback function to create a new reflection */
+  onCreateNew?: () => void;
+  /** Stats data for compact display */
+  stats?: {
+    total: number;
+    completed: number;
+    passed: number;
+    pending: number;
+    inProgress: number;
+  };
 }

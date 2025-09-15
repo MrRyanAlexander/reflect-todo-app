@@ -196,7 +196,14 @@ export const addMessageToChatSession = (session: ChatSession, message: ChatMessa
  * @returns {ChatSession | null} Chat session or null if not found
  */
 export const getChatSessionForReflection = (sessions: ChatSession[], reflectionId: string): ChatSession | null => {
-  return sessions.find(session => session.reflectionId === reflectionId) || null;
+  // Find all sessions for this reflection and return the most recent one
+  const reflectionSessions = sessions.filter(session => session.reflectionId === reflectionId);
+  if (reflectionSessions.length === 0) {
+    return null;
+  }
+  
+  // Sort by creation date and return the most recent
+  return reflectionSessions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] || null;
 };
 
 /**

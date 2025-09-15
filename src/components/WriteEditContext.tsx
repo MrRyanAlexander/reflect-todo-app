@@ -15,6 +15,7 @@ export const WriteEditContext: React.FC<WriteEditContextProps> = ({
   onSaveDraft,
   isSubmitting,
   status,
+  feedback,
 }) => {
   const [localText, setLocalText] = useState(reflectionText);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -112,7 +113,7 @@ export const WriteEditContext: React.FC<WriteEditContextProps> = ({
    */
   const meetsRequirements = () => {
     const { sentences } = getTextStats();
-    return sentences >= 3 && sentences <= 4 && !validationError;
+    return sentences >= 3 && !validationError; // Removed upper limit - allow any number of sentences
   };
 
   const statusDisplay = getStatusDisplay();
@@ -144,7 +145,7 @@ export const WriteEditContext: React.FC<WriteEditContextProps> = ({
             value={localText}
             onChange={handleTextChange}
             placeholder="Today I went to school and had a test. I felt nervous but I think I did okay. Tomorrow I will study more for the next test."
-            className="w-full h-full px-4 py-4 bg-slate-700/50 border border-pink-500/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all resize-none text-lg leading-relaxed font-medium"
+            className="w-full h-full min-h-[300px] px-4 py-4 bg-slate-700/50 border border-pink-500/30 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500/50 transition-all resize-none text-lg leading-relaxed font-medium"
             maxLength={1000}
             aria-label="Reflection text input"
             style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
@@ -158,8 +159,8 @@ export const WriteEditContext: React.FC<WriteEditContextProps> = ({
             <div className="flex items-center space-x-4 text-slate-400">
               <span>{words} words</span>
               <span>{sentences} sentences</span>
-              <span className={sentences >= 3 && sentences <= 4 ? 'text-green-400' : 'text-orange-400'}>
-                {sentences >= 3 && sentences <= 4 ? '✓ Good length' : 'Need 3-4 sentences'}
+              <span className={sentences >= 3 ? 'text-green-400' : 'text-orange-400'}>
+                {sentences >= 3 ? '✓ Good length' : 'Need at least 3 sentences'}
               </span>
             </div>
             <div className="text-slate-400">
@@ -185,10 +186,22 @@ export const WriteEditContext: React.FC<WriteEditContextProps> = ({
               <span>How you felt?</span>
             </div>
             <div className={`flex items-center space-x-1 ${
-              localText.toLowerCase().includes('tomorrow') || localText.toLowerCase().includes('will') || localText.toLowerCase().includes('plan')
+              localText.toLowerCase().includes('tomorrow') || 
+              localText.toLowerCase().includes('will') || 
+              localText.toLowerCase().includes('plan') ||
+              localText.toLowerCase().includes('next time') ||
+              localText.toLowerCase().includes('next') ||
+              localText.toLowerCase().includes('going to') ||
+              localText.toLowerCase().includes('gonna')
                 ? 'text-green-400' : 'text-slate-400'
             }`}>
-              <span>{localText.toLowerCase().includes('tomorrow') || localText.toLowerCase().includes('will') || localText.toLowerCase().includes('plan') ? '✓' : '○'}</span>
+              <span>{localText.toLowerCase().includes('tomorrow') || 
+              localText.toLowerCase().includes('will') || 
+              localText.toLowerCase().includes('plan') ||
+              localText.toLowerCase().includes('next time') ||
+              localText.toLowerCase().includes('next') ||
+              localText.toLowerCase().includes('going to') ||
+              localText.toLowerCase().includes('gonna') ? '✓' : '○'}</span>
               <span>What's next?</span>
             </div>
           </div>
@@ -198,6 +211,28 @@ export const WriteEditContext: React.FC<WriteEditContextProps> = ({
             <div className="flex items-center space-x-2 text-orange-400 text-xs">
               <FiAlertCircle className="w-3 h-3" />
               <span>{validationError}</span>
+            </div>
+          )}
+
+          {/* Similarity warning */}
+          {feedback && feedback.similarity && (
+            <div className="mt-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+              <div className="flex items-center space-x-2 text-orange-400 text-sm mb-2">
+                <FiAlertCircle className="w-4 h-4" />
+                <span className="font-medium">This reflection is too similar to a previous one!</span>
+              </div>
+              <div className="text-orange-300 text-xs mb-2">
+                {feedback.similarity}% similar to your reflection from {new Date(feedback.date).toLocaleDateString()}
+              </div>
+              <div className="text-slate-300 text-xs">
+                <strong>Previous reflection:</strong> "{feedback.similarReflection}"
+              </div>
+              <div className="text-slate-300 text-xs mt-1">
+                <strong>Current reflection:</strong> "{localText}"
+              </div>
+              <div className="text-orange-300 text-xs mt-2 font-medium">
+                Please write something unique about today's experiences!
+              </div>
             </div>
           )}
         </div>

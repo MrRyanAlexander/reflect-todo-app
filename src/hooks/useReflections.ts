@@ -164,10 +164,11 @@ export const useReflections = () => {
   const getStats = useCallback(() => {
     const total = reflections.length;
     const passed = reflections.filter(reflection => reflection.status === 'passed').length;
+    const completed = passed; // For compatibility with existing code
     const inProgress = reflections.filter(reflection => reflection.status === 'in-progress').length;
     const pending = reflections.filter(reflection => reflection.status === 'pending').length;
     
-    return { total, passed, inProgress, pending };
+    return { total, completed, passed, inProgress, pending };
   }, [reflections]);
 
   /**

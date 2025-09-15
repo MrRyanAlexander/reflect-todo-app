@@ -200,10 +200,7 @@ export const getReflectionValidationError = (text: string): string | null => {
     return 'Invalid reflection text';
   }
   
-  if (!isValidSentenceCount(text)) {
-    const count = countSentences(text);
-    return `Reflection should be 3-4 sentences (currently ${count})`;
-  }
+  // Removed sentence count validation - students can write as much as they want
   
   return null;
 };

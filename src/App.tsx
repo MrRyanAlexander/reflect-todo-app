@@ -6,10 +6,8 @@ import {
   Header,
   Footer,
   Sidebar,
-  Stats,
   ContextTabs,
-  ChatContext,
-  FeedbackContext,
+  CombinedChatFeedback,
   WriteEditContext,
 } from './components';
 
@@ -84,7 +82,30 @@ function App() {
     }
   }, [selectedReflection]);
 
-  // TODO: Implement handleCreateReflection when "New Reflection" button is added
+  // Listen for submit reflection events from chat
+  useEffect(() => {
+    const handleChatSubmitReflection = () => {
+      handleSubmitReflection();
+    };
+
+    window.addEventListener('submitReflection', handleChatSubmitReflection);
+    return () => {
+      window.removeEventListener('submitReflection', handleChatSubmitReflection);
+    };
+  }, []);
+
+  /**
+   * Handles creating a new reflection
+   */
+  const handleCreateReflection = () => {
+    // Clear current selection and text
+    clearSelection();
+    setCurrentReflectionText('');
+    setFeedback(null);
+    
+    // Switch to Write/Edit context
+    switchContext(AppContext.WRITE_EDIT);
+  };
 
   /**
    * Handles updating reflection text
@@ -131,6 +152,11 @@ function App() {
       }
 
       if (reflection) {
+        // Get past passing reflections for similarity check
+        const pastPassingReflections = reflections
+          .filter(r => r.status === 'passed')
+          .map(r => ({ text: r.text, createdAt: r.createdAt }));
+
         // Call evaluation API
         const response = await fetch('/api/evaluate-reflection', {
           method: 'POST',
@@ -139,6 +165,7 @@ function App() {
           },
           body: JSON.stringify({
             reflectionText: currentReflectionText,
+            pastPassingReflections: pastPassingReflections,
           }),
         });
 
@@ -151,8 +178,8 @@ function App() {
             const status = data.data.status === 'excellent' ? ReflectionStatus.PASSED : ReflectionStatus.IN_PROGRESS;
             updateReflectionStatus(reflection.id, status);
             
-            // Switch to feedback context
-            switchContext(AppContext.FEEDBACK);
+            // Switch to chat context to show feedback and allow chat
+            switchContext(AppContext.CHAT);
           }
         }
       }
@@ -168,7 +195,7 @@ function App() {
    */
   const handleSendChatMessage = async (content: string) => {
     if (selectedReflection) {
-      await sendMessage(selectedReflection.id, content, selectedReflection);
+      await sendMessage(selectedReflection.id, content, selectedReflection, feedback);
     }
   };
 
@@ -219,15 +246,15 @@ function App() {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col bg-gradient-to-br ${THEME.BACKGROUND_GRADIENT}`}>
+    <div className={`h-screen flex flex-col bg-gradient-to-br ${THEME.BACKGROUND_GRADIENT}`}>
       {/* Header */}
       <Header onMenuClick={handleOpenSidebar} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col px-4 py-6">
-        <div className={`w-full ${CSS_CLASSES.MAX_CONTENT_WIDTH} mx-auto`}>
+      <main className="flex-1 flex flex-col px-4 py-6 min-h-0 overflow-hidden">
+        <div className={`w-full ${CSS_CLASSES.MAX_CONTENT_WIDTH} mx-auto flex flex-col h-full`}>
           {/* Context Tabs */}
-          <div className="mb-4">
+          <div className="mb-4 flex-shrink-0">
             <ContextTabs
               activeContext={activeContext}
               onContextChange={switchContext}
@@ -236,21 +263,16 @@ function App() {
           </div>
 
           {/* Context Content */}
-          <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-pink-500/20 p-4 h-[calc(100vh-200px)] flex flex-col">
+          <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-pink-500/20 p-4 flex-1 flex flex-col min-h-0 overflow-hidden">
             {activeContext === AppContext.CHAT && (
-              <ChatContext
+              <CombinedChatFeedback
                 reflection={selectedReflection}
                 messages={currentMessages}
                 onSendMessage={handleSendChatMessage}
                 isSending={isSending}
-              />
-            )}
-
-            {activeContext === AppContext.FEEDBACK && (
-              <FeedbackContext
-                reflection={selectedReflection}
                 feedback={feedback}
                 isLoading={isEvaluating}
+                onEdit={() => switchContext(AppContext.WRITE_EDIT)}
               />
             )}
 
@@ -262,19 +284,11 @@ function App() {
                 onSaveDraft={handleSaveDraft}
                 isSubmitting={isEvaluating}
                 status={selectedReflection?.status || ReflectionStatus.PENDING}
+                feedback={feedback}
               />
             )}
           </div>
 
-          {/* Stats */}
-          <div className="mt-4">
-            <Stats 
-              total={stats.total} 
-              completed={stats.passed}
-              pending={stats.pending}
-              inProgress={stats.inProgress}
-            />
-          </div>
         </div>
       </main>
 
@@ -286,6 +300,8 @@ function App() {
         onSelect={handleSelectReflection}
         onDelete={handleDeleteReflection}
         selectedReflectionId={selectedReflectionId || undefined}
+        onCreateNew={handleCreateReflection}
+        stats={stats}
       />
 
       {/* Footer */}

@@ -177,10 +177,18 @@ export default async function handler(request: Request): Promise<Response> {
       );
     }
 
+    // Check for similarity with past reflections first
+    const pastPassingReflections = body.pastPassingReflections || [];
+    let similarityCheck = '';
+    
+    if (pastPassingReflections.length > 0) {
+      similarityCheck = `\n\nIMPORTANT: Check if this reflection is too similar to past reflections. If it's 60%+ similar to any past passing reflection, return a special response indicating plagiarism/copying.`;
+    }
+
     // Create educational evaluation prompt
     const evaluationPrompt = `You are a supportive 6-7th grade ELL writing coach. Evaluate this student's daily reflection and provide encouraging, constructive feedback.
 
-Student's Reflection: "${reflectionText}"
+Student's Reflection: "${reflectionText}"${similarityCheck}
 
 Please evaluate the reflection based on these three key requirements:
 1. What happened today? (Did they describe an event or experience?)
@@ -189,33 +197,41 @@ Please evaluate the reflection based on these three key requirements:
 
 Guidelines for evaluation:
 - Be encouraging and supportive, never harsh or critical
-- Provide specific, actionable feedback
-- Use age-appropriate language (6-7th grade level)
-- Focus on what they did well first, then suggest improvements
-- Keep remarks under 30 words each
-- Give hints and suggestions, never direct answers
+- Provide ONE specific, actionable suggestion per section
+- Use simple language (6-7th grade level)
+- Focus on what they did well first, then ONE improvement
+- Keep remarks under 20 words each
+- Give ONE clear hint, never multiple suggestions
 - Consider this is for ELL students - be patient and clear
+- Make suggestions very specific and easy to understand
+- A score of 75% or higher should be considered "good" or "excellent"
+- Don't be overly critical - if they have the basic elements, give them credit
+- Status guidelines: 75%+ = "good", 90%+ = "excellent", below 75% = "needs-work"
+- Be generous with scoring - students should feel successful, not frustrated
+- Remember: These are ELL students working toward grade level - focus on basic elements, not advanced details
+- Give credit for: simple sentences, basic emotions, any future plan, basic details
+- If the reflection is too similar to a past reflection, set status to "needs-work" and provide feedback about being unique
 
 IMPORTANT: You MUST return ONLY valid JSON in the following exact format:
 {
   "feedback": {
     "happened": {
       "pass": true/false,
-      "remarks": "brief comment",
-      "suggestions": ["suggestion1", "suggestion2"]
+      "remarks": "brief comment under 20 words",
+      "suggestions": ["ONE specific suggestion"]
     },
     "feeling": {
       "pass": true/false,
-      "remarks": "brief comment",
-      "suggestions": ["suggestion1", "suggestion2"]
+      "remarks": "brief comment under 20 words",
+      "suggestions": ["ONE specific suggestion"]
     },
     "next": {
       "pass": true/false,
-      "remarks": "brief comment",
-      "suggestions": ["suggestion1", "suggestion2"]
+      "remarks": "brief comment under 20 words",
+      "suggestions": ["ONE specific suggestion"]
     }
   },
-  "suggestions": ["overall suggestion 1", "overall suggestion 2"],
+  "suggestions": ["ONE overall suggestion"],
   "overallScore": 75,
   "status": "needs-work"
 }
